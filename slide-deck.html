@@ -1,0 +1,238 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="slide-slide.html">
+
+<dom-module id="slide-deck">
+    <template>
+	<style>
+	 :host {
+	     top: 50%;
+	     left: 50%;
+	 }
+
+	 :host,#canvas {
+             display: block;
+             position: absolute;
+             transform-origin: top left;
+             transition: all 0.8s ease-in-out;
+             transform-style: preserve-3d;
+	 }
+	</style>
+	<div id="canvas" style="width: {{width}}px; height: {{height}}px">
+	    <content></content>
+	</div>
+    </template>
+
+    <script>
+     Polymer({
+	 is: 'slide-deck',
+
+	 _slideNames: [],
+	 _slides: [],
+	 canvas: null,
+
+	 properties: {
+	     style: {
+		 tyle: String,
+		 value: '',
+	     },
+	     width: {
+		 type: Number,
+		 value: 200,
+		 notify: true,
+	     },
+	     height: {
+		 type: Number,
+		 value: 300,
+		 notify: true,
+	     },
+	     perspective: {
+		 type: Number,
+		 value: 1000,
+	     },
+	     maxScale: 1,
+	     minScale: 0,
+	     counter: {
+		 type: Number,
+		 value: 0,
+		 reflectToAttribute: true,
+	     }
+	 },
+
+	 ready: function() {
+	     this.canvas = document.getElementById("canvas");
+	     this._slides = [].filter.call(this.canvas.children, function(el) {return el.tagName == "SLIDE-SLIDE"});
+	     this._setCurrentSlide();
+	 },
+
+	 init: function() {
+
+	     document.addEventListener( "keydown", function( event ) {
+		 if ( event.keyCode === 9 ||
+		      ( event.keyCode >= 32 && event.keyCode <= 34 ) ||
+		      ( event.keyCode >= 37 && event.keyCode <= 40 ) ) {
+			  event.preventDefault();
+		 }
+	     }, false );
+
+	     document.addEventListener( "keyup", function( event ) {
+		 if ( event.shiftKey || event.altKey || event.ctrlKey || event.metaKey ) {
+		     return;
+		 }
+
+		 if ( event.keyCode === 9 ||
+		      ( event.keyCode >= 32 && event.keyCode <= 34 ) ||
+		      ( event.keyCode >= 37 && event.keyCode <= 40 ) ) {
+			  var decks = document.getElementsByTagName("slide-deck");
+			  switch ( event.keyCode ) {
+			      case 33: // Page up
+			      case 37: // Left
+			      case 38: // Up
+				  [].forEach.call(decks, function(el) {el.prevSlide();});
+				  break;
+			      case 32: // Space
+			      case 34: // Page down
+			      case 39: // Right
+			      case 40: // Down
+				  [].forEach.call(decks, function(el) {el.nextSlide();});
+				  break;
+			  }
+
+			  event.preventDefault();
+		 }
+	     }, false );
+
+	     var scale = this._computeWindowScale();
+	     this.style['transform'] = "perspective(" + this.perspective / scale + "px) " + "scale(" + scale + ")";
+
+	     var x = 0,
+		 y = 0,
+		 z = 0;
+	     var data = [].map.call(this._slides, function(slide) {
+		 var data = {};
+		 if(slide.absx) {
+		     x = slide.absx;
+		     data.x = x;
+		 } else {
+		     x += slide.dx || 0
+		 }		 
+		 data.x = x
+
+		 if(slide.absy) {
+		     y = slide.absy;
+		 } else {
+		     y += slide.dy || 0
+		 }
+		 data.y = y
+
+		 if(slide.absz) {
+		     z = slide.absz;
+		 } else {
+		     z += slide.dz || 0
+		 }
+		 data.z = z
+		 
+		 data.rx = slide.rx || 0;
+		 data.ry = slide.ry || 0;
+		 data.rz = slide.rz || 0;
+
+		 data.scale = slide.scale || 1;
+		 
+		 data.name = slide.id;
+
+		 return(data);
+	     });
+
+	     var deck2 = this;
+	     this._transformData = data;
+	     this._slides.map(function(slide, i, slides) {
+		 var dat = data[i];
+		 var translate = " translate3d(" + dat.x / 100 * deck2.width + "px," + dat.y / 100 * deck.height + "px," + dat.z + "px) ";
+		 var rotate = " rotateX(" + dat.rx + "deg) rotateY(" + dat.ry + "deg) rotateZ(" + dat.rz + "deg) ";
+		 var style = "translate(-50%,-50%)" + translate + rotate;
+		 slide.style['transform'] = style;
+	     });
+
+	 },
+
+	 _css: function(el, props) {
+	     var key;
+	     for (key in props) {
+		 if (props.hasOwnProperty(key)) {
+		     el.style[key] = props[key];
+		 }
+	     }
+	     return el;
+	 },
+
+	 _computeWindowScale: function() {
+	     var hScale = (window.innerHeight - 20) / this.height,
+		 wScale = (window.innerWidth - 20) / this.width,
+		 scale = hScale > wScale ? wScale : hScale;
+
+	     if(this.maxScale && scale > this.maxScale) {
+		 scale = this.maxScale;
+	     }
+
+	     if(this.minScale && scale > this.minScale) {
+		 scale = this.minScale;
+	     }
+
+	     return scale;
+	 },
+
+	 _setCurrentSlide: function() {
+	     var currentSlide = this._slides.find(this._findCurrent);
+	     if(currentSlide) { currentSlide.current = false }
+	     this._slides[this.counter].current = true;
+	 },
+
+	 _findCurrent: function(slide) {
+	     return slide.current;
+	 },
+
+	 _translate: function(dat) {
+	     return " translate3d(" + dat.x / 100 * this.width * -1 + "px," + dat.y / 100 * this.height * -1 + "px," + dat.z * -1 + "px)";
+	 },
+
+	 _rotate: function(dat, revert) {
+	     var rX = " rotateX(" + -1 * dat.rx + "deg) ",
+		 rY = " rotateY(" + -1 * dat.ry + "deg) ",
+		 rZ = " rotateZ(" + -1 * dat.rz + "deg) ";
+
+	     return revert ? rZ + rY + rX : rX + rY + rZ;
+	 },
+
+	 _scale: function(dat) {
+	     return " scale(" + dat.scale + ") ";
+	 },
+
+	 _perspective: function(dat) {
+	     return " perspective(" + this._computeWindowScale() / dat + "px)";
+	 },
+	 
+	 transform: function() {
+	     var dat = this._transformData[this.counter]
+
+	     this.style['transform'] = this._perspective(dat);
+	     this.style['scale'] = this._scale(dat);
+	     canvas.style['transform'] = this._rotate(dat, true) + this._translate(dat);
+	 },
+
+	 nextSlide: function() {
+	     if(this.counter < this._slides.length - 1) {
+		 this.counter += 1;
+		 this._setCurrentSlide();
+		 this.transform();
+	     }
+	 },
+
+	 prevSlide: function() {
+	     if(this.counter > 0) {
+		 this.counter -= 1;
+		 this._setCurrentSlide();
+		 this.transform();
+	     }
+	 }
+     });
+    </script>
+</dom-module>

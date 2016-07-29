@@ -1,0 +1,69 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="slide-slide">
+    <template>
+	<style>
+	 :host {
+             display: flex;
+	     align-items: center;
+	     justify-content: center;
+	     flex-flow: row;
+	     background: #f3f3f3;
+	     color: #4a4a4a;
+	     width: 100%;
+	     height: 100%;
+	     position: absolute;
+	     transition: background 0.5s;
+	 }
+
+	 :host[current] {
+	     background: #4a4a4a;
+	     color: #f3f3f3;
+	 }
+	</style>
+	<content></content>
+    </template>
+
+    <script>
+     Polymer({
+	 is: 'slide-slide',
+
+	 properties: {
+	     absx: {type: Number},
+	     absy: {type: Number},
+	     absz: {type: Number},
+	     dx: {
+		 type: Number,
+		 value: 0
+	     },
+	     dy: {
+		 type: Number,
+		 value: 0
+	     },
+	     dz: {
+		 type: Number,
+		 value: 0
+	     },
+	     rx: {
+		 type: Number,
+		 value: 0
+	     },
+	     ry: {
+		 type: Number,
+		 value: 0
+	     },
+	     rz: {
+		 type: Number,
+		 value: 0
+	     },
+	     current: {
+		 type: Boolean,
+		 value: false,
+		 notify: true,
+		 reflectToAttribute: true,
+	     },
+	 },
+
+     });
+    </script>
+</dom-module>

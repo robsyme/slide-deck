@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+    <head>
+	<title>slide-deck demo</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+	<script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+	<link rel="import" href="../slide-deck.html">
+
+	<style>
+	 body,html {
+	     margin: 0;
+	     overflow: hidden;
+	 }
+	</style>
+
+    </head>
+
+    <body>
+
+	<slide-deck id="deck" width="5048" height="1200">
+	    <slide-slide id="introduction" dx="0">
+		<h3>Introduction</h3>
+	    </slide-slide>
+	    <slide-slide id="contents" dx="100">
+		<h3>Contents</h3>
+	    </slide-slide>
+	    <slide-slide id="one" dy="100" dz="0" rx="-20">
+		<h3>One</h3>
+	    </slide-slide>
+	    <slide-slide id="two" dx="100" ry="30">
+		<h3>Two</h3>
+	    </slide-slide>
+	    <slide-slide id="two" dx="100" rz="30">
+		<h3>Three</h3>
+	    </slide-slide>
+	</slide-deck>
+
+	<script>
+	 var deck = document.getElementById("deck");
+	 deck.init();
+	</script>
+    </body>
+
+</html>
